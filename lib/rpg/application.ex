@@ -7,9 +7,18 @@ defmodule RPG.Application do
 
   @impl true
   def start(_type, _args) do
+    client_opts = [
+      access_token: System.fetch_env!("MX_ACCESS_TOKEN"),
+      homeserver: System.fetch_env!("MX_HOMESERVER_URL"),
+      storage: Polyjuice.Client.Storage.Ets.open(),
+      user_id: System.fetch_env!("MX_USER_ID")
+    ]
+
     children = [
-      # Starts a worker by calling: RPG.Worker.start_link(arg)
-      # {RPG.Worker, arg}
+      {Phoenix.PubSub, name: RPG.PubSub},
+      {DynamicSupervisor, name: RPG.PartySupervisor},
+      RPG,
+      {RPG.Consumer, client_opts}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
